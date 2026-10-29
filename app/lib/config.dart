@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Where calls come from. Defaults are baked in at build time from GitHub secrets
-/// (`--dart-define=CALL_TOPIC=...`), and can be changed in the app's settings.
+/// Where calls come from. The public build has no topics; they arrive by QR pairing
+/// (`claudecaller://pair`) or are typed in the app's settings.
 class CallerConfig {
   CallerConfig({required this.server, required this.callTopic, required this.replyTopic});
 
@@ -19,6 +19,15 @@ class CallerConfig {
   Uri get replyUri => Uri.parse('${_trim(server)}/$replyTopic');
 
   static String _trim(String s) => s.endsWith('/') ? s.substring(0, s.length - 1) : s;
+
+  /// `claudecaller://pair?server=…&call=…&reply=…` (opened from the QR pairing page).
+  static CallerConfig? fromPairingUri(Uri uri) {
+    if (uri.scheme != 'claudecaller' || uri.host != 'pair') return null;
+    final q = uri.queryParameters;
+    final call = q['call'] ?? '';
+    if (call.isEmpty) return null;
+    return CallerConfig(server: q['server'] ?? _defaultServer, callTopic: call, replyTopic: q['reply'] ?? '');
+  }
 
   static Future<CallerConfig> load() async {
     final prefs = await SharedPreferences.getInstance();

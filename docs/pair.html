@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Pair Claude Caller</title>
+<meta name="description" content="Pair the Claude Caller app with your private call channel.">
+<style>
+  :root { --bg: #f6f7fb; --card: #fff; --text: #1a2233; --muted: #5b6475; --border: #e3e7f0; --accent: #4f46e5; --accent-text: #fff; --warn: #b45309; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #0b0f14; --card: #151b23; --text: #e6edf3; --muted: #9aa4b2; --border: #262d38; --accent: #7c8cff; --accent-text: #0b0f14; --warn: #fbbf24; }
+  }
+  :root[data-theme="dark"] { --bg: #0b0f14; --card: #151b23; --text: #e6edf3; --muted: #9aa4b2; --border: #262d38; --accent: #7c8cff; --accent-text: #0b0f14; --warn: #fbbf24; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; padding: 40px 16px; text-align: center; }
+  h1 { font-size: 1.6rem; margin: 0 0 8px; }
+  p { color: var(--muted); }
+  .btn { display: block; background: var(--accent); color: var(--accent-text); text-decoration: none; font-weight: 700;
+         padding: 16px; border-radius: 14px; margin: 24px 0 10px; font-size: 1.05rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-top: 22px; text-align: left; }
+  .row { margin: 8px 0; } .row b { display: block; font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .row code { word-break: break-all; font-size: .9rem; }
+  .err { color: var(--warn); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pair Claude Caller</h1>
+  <p id="lead">Opening the app…</p>
+  <a class="btn" id="open" href="#">Open in Claude Caller</a>
+  <p style="font-size:.88rem">Don't have the app yet? <a href="./">Download it</a>, then scan the QR again.</p>
+  <details class="card" id="manual" hidden>
+    <summary>Enter manually instead</summary>
+    <p style="font-size:.88rem">In the app: <i>Connection settings</i> → paste these → <i>Save</i>.</p>
+    <div class="row"><b>ntfy server</b><code id="s"></code></div>
+    <div class="row"><b>Call topic</b><code id="c"></code></div>
+    <div class="row"><b>Reply topic</b><code id="r"></code></div>
+  </details>
+</main>
+<script>
+  // The settings travel in the URL fragment (#...), which browsers never send to the server.
+  const p = new URLSearchParams(location.hash.slice(1));
+  const s = p.get('s') || 'https://ntfy.sh', c = p.get('c') || '', r = p.get('r') || '';
+  const lead = document.getElementById('lead'), btn = document.getElementById('open');
+  if (!c) {
+    lead.textContent = 'This pairing link is incomplete. Ask Claude to show your pairing QR again.';
+    lead.className = 'err';
+    btn.hidden = true;
+  } else {
+    const q = 'server=' + encodeURIComponent(s) + '&call=' + encodeURIComponent(c) + '&reply=' + encodeURIComponent(r);
+    const fallback = encodeURIComponent(location.origin + location.pathname.replace(/pair\.html$/, ''));
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    btn.href = isAndroid
+      ? 'intent://pair?' + q + '#Intent;scheme=claudecaller;package=com.nawin.claude_caller;S.browser_fallback_url=' + fallback + ';end'
+      : 'claudecaller://pair?' + q;
+    lead.textContent = 'Tap the button to save your private call channel in the app.';
+    document.getElementById('s').textContent = s;
+    document.getElementById('c').textContent = c;
+    document.getElementById('r').textContent = r;
+    document.getElementById('manual').hidden = false;
+    history.replaceState(null, '', location.pathname); // don't leave the secret in the address bar / history
+  }
+</script>
+</body>
+</html>

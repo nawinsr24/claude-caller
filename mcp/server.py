@@ -4,7 +4,7 @@ Calls are relayed through ntfy (https://ntfy.sh, free) on a private random topic
 Android app listens on that topic, rings like an incoming call, and reads the message aloud; your
 answer (Got it / Repeat / a spoken reply) comes back on a second private topic.
 
-Tools: place_call, wait_for_reply, get_call_replies, caller_setup_info.
+Tools: place_call, wait_for_reply, get_call_replies, pairing_qr, caller_setup_info.
 """
 
 from __future__ import annotations
@@ -103,6 +103,34 @@ def get_call_replies(since_minutes: int = 60) -> list[dict]:
     """List answers received from the phone in the last N minutes (newest last)."""
     cfg = load_config()
     return [_parse_reply(m) for m in _poll(cfg, cfg["reply_topic"], f"{max(1, since_minutes)}m")]
+
+
+PAIR_PAGE = "https://nawinsr24.github.io/claude-caller/pair.html"
+QR_PATH = CONFIG_PATH.parent / "pairing-qr.svg"
+
+
+@server.tool()
+def pairing_qr(open_it: bool = True) -> dict:
+    """Show a QR code that pairs the Claude Caller app with this computer's private call channel.
+
+    The settings travel in the URL fragment (#...), which is never sent to GitHub. The QR is saved locally
+    (gitignored) and opened on screen; scan it with the phone camera and tap "Open in Claude Caller".
+    """
+    import subprocess
+
+    import qrcode
+    import qrcode.image.svg
+
+    cfg = load_config()
+    frag = urllib.parse.urlencode({"s": cfg["server"], "c": cfg["call_topic"], "r": cfg["reply_topic"]})
+    url = f"{PAIR_PAGE}#{frag}"
+    img = qrcode.make(url, image_factory=qrcode.image.svg.SvgPathImage, box_size=12, border=3)
+    img.save(str(QR_PATH))
+    QR_PATH.chmod(0o600)
+    if open_it:
+        subprocess.run(["open", str(QR_PATH)], check=False)
+    return {"qr_file": str(QR_PATH), "opened": open_it,
+            "next": "Scan with the phone camera, tap 'Open in Claude Caller', then 'Start listening for calls'."}
 
 
 @server.tool()

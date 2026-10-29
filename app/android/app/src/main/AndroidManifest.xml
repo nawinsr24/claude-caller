@@ -38,6 +38,15 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Pairing link from the QR page: claudecaller://pair?server=…&call=…&reply=… -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="claudecaller" android:host="pair" />
+            </intent-filter>
+            <!-- app_links handles links; stop Flutter routing them as navigator routes -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
         </activity>
         <!-- Keeps the call listener alive in the background (do not rename). -->
         <service

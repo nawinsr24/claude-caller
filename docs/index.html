@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Caller</title>
+<meta name="description" content="Download Claude Caller for Android: your phone rings when Claude calls, and the message is read aloud.">
+<style>
+  :root {
+    --bg: #f6f7fb; --card: #ffffff; --text: #1a2233; --muted: #5b6475; --border: #e3e7f0;
+    --accent: #4f46e5; --accent-text: #ffffff; --ok: #15803d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0f14; --card: #151b23; --text: #e6edf3; --muted: #9aa4b2; --border: #262d38;
+      --accent: #7c8cff; --accent-text: #0b0f14; --ok: #4ade80;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0f14; --card: #151b23; --text: #e6edf3; --muted: #9aa4b2; --border: #262d38;
+    --accent: #7c8cff; --accent-text: #0b0f14; --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 40px 16px 56px; }
+  .hero { text-align: center; margin-bottom: 28px; }
+  .logo { width: 72px; height: 72px; border-radius: 20px; background: var(--accent); color: var(--accent-text);
+          display: grid; place-items: center; font-size: 36px; margin: 0 auto 14px; }
+  h1 { font-size: 1.9rem; margin: 0 0 6px; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin: 0; }
+  .download { display: block; text-align: center; background: var(--accent); color: var(--accent-text);
+              text-decoration: none; font-weight: 700; padding: 16px; border-radius: 14px; margin: 26px 0 8px; font-size: 1.05rem; }
+  .small { text-align: center; color: var(--muted); font-size: .85rem; margin: 0 0 28px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; }
+  .card h2 { font-size: 1rem; margin: 0 0 10px; }
+  ol { margin: 0; padding-left: 1.2rem; } li { margin: 6px 0; }
+  code { background: color-mix(in srgb, var(--text) 8%, transparent); padding: 1px 6px; border-radius: 6px; font-size: .9em; }
+  .note { color: var(--muted); font-size: .88rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="logo" aria-hidden="true">☎</div>
+    <h1>Claude Caller</h1>
+    <p class="tag">Your phone rings when Claude calls — and the message is read aloud.</p>
+  </div>
+
+  <a class="download" href="https://github.com/nawinsr24/claude-caller/releases/latest/download/ClaudeCaller-android.apk">
+    Download for Android (APK)
+  </a>
+  <p class="small">Free · no ads · <a href="https://github.com/nawinsr24/claude-caller/releases">all versions</a></p>
+
+  <div class="card">
+    <h2>Install</h2>
+    <ol>
+      <li>Tap <b>Download</b>, open the file and allow <i>install unknown apps</i> when Android asks.</li>
+      <li>Open <b>Claude Caller</b>.</li>
+      <li>On your computer, ask Claude: <code>show my Claude Caller pairing QR</code>, then scan it with your phone camera and tap <b>Open in Claude Caller</b>.</li>
+      <li>Tap <b>Start listening for calls</b> and allow notifications, full-screen calls and the battery exemption.</li>
+      <li>Tap <b>Test the call screen and voice</b> to hear it.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>How it works</h2>
+    <p class="note" style="margin:0">Claude sends the message to a private channel on <a href="https://ntfy.sh">ntfy</a>.
+      The app listens, rings like an incoming call, and reads the message aloud when you answer.
+      <b>Got it</b>, <b>Repeat</b> or <b>Decline</b> goes back to Claude. The download contains no personal
+      settings — your private channel is added only when you scan your own pairing QR.</p>
+  </div>
+  <p class="note">Updating? If Android refuses to install over the old version, uninstall it first (each build is signed fresh).</p>
+</main>
+</body>
+</html>

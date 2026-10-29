@@ -21,11 +21,8 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      # The private ntfy topics come from repository secrets, so they are never stored in the code.
-      - run: >
-          flutter build apk --release
-          --dart-define=CALL_TOPIC=${{ secrets.CALL_TOPIC }}
-          --dart-define=REPLY_TOPIC=${{ secrets.REPLY_TOPIC }}
+      # Public build: no personal settings inside. Each user pairs with their own QR (docs/pair.html).
+      - run: flutter build apk --release
       - run: cp build/app/outputs/flutter-apk/app-release.apk ClaudeCaller-android.apk
       - uses: actions/upload-artifact@v4
         with: { name: ClaudeCaller-android, path: app/ClaudeCaller-android.apk }

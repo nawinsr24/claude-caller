@@ -1,4 +1,5 @@
 import 'package:claude_caller/calls.dart';
+import 'package:claude_caller/config.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -28,5 +29,16 @@ void main() {
     );
     expect(back!.message, 'Build finished');
     expect(CallInfo.fromPayload('not json'), isNull);
+  });
+
+  test('pairing link fills the connection settings', () {
+    final cfg = CallerConfig.fromPairingUri(
+      Uri.parse('claudecaller://pair?server=https%3A%2F%2Fntfy.sh&call=cc-call-abc&reply=cc-reply-def'),
+    );
+    expect(cfg!.server, 'https://ntfy.sh');
+    expect(cfg.callTopic, 'cc-call-abc');
+    expect(cfg.replyTopic, 'cc-reply-def');
+    expect(CallerConfig.fromPairingUri(Uri.parse('https://example.com/pair?call=x')), isNull);
+    expect(CallerConfig.fromPairingUri(Uri.parse('claudecaller://pair')), isNull);
   });
 }

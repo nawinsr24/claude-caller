@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -66,11 +69,35 @@ class _HomeScreenState extends State<HomeScreen> {
   final _replyTopic = TextEditingController();
   bool _listening = false;
   bool _showSettings = false;
+  StreamSubscription<Uri>? _links;
+  String? _lastLink;
 
   @override
   void initState() {
     super.initState();
     _load();
+    // Pairing: the QR page opens claudecaller://pair?... (also delivered when the app was closed).
+    _links = AppLinks().uriLinkStream.listen(_onLink);
+  }
+
+  @override
+  void dispose() {
+    _links?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _onLink(Uri uri) async {
+    if (uri.toString() == _lastLink) return;
+    _lastLink = uri.toString();
+    final cfg = CallerConfig.fromPairingUri(uri);
+    if (cfg == null) return;
+    await cfg.save();
+    if (_listening) await FlutterForegroundTask.restartService();
+    await _load();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Paired ✓ — now tap “Start listening for calls”')),
+    );
   }
 
   Future<void> _load() async {

@@ -14,19 +14,18 @@ Claude ◀─wait_for_reply─ MCP server ◀──── ntfy.sh/<reply_topic> 
 - `config.json` — ntfy server + the two private topic names (created on first run, mode 600).
   Anyone who knows the call topic can ring you, so keep it private.
 - `app/` — Android app (Flutter): full-screen incoming-call screen, text-to-speech, replies.
-- `.github/workflows/build.yml` — GitHub Actions builds the APK (no local Android SDK needed),
-  same as TamilTV. Topics are injected from repo secrets `CALL_TOPIC` / `REPLY_TOPIC`.
+- `.github/workflows/build.yml` — GitHub Actions builds the APK (no local Android SDK needed), same
+  as TamilTV. The APK is public and contains **no** personal settings.
+- `docs/` — GitHub Pages: `index.html` (download page) and `pair.html` (QR pairing). Pairing settings travel
+  in the URL fragment, which browsers never send to the server.
 
 ## Status
 - [x] MCP server built and registered (`claude mcp list` → claude-caller ✔ Connected)
 - [x] Android app written; `flutter analyze` clean, tests pass
-- [ ] Private GitHub repo + secrets, APK built by Actions
+- [x] Public repo + GitHub Pages download page; APK released by Actions
+- [ ] Phone paired with the QR (ask Claude: "show my Claude Caller pairing QR")
 - [ ] APK installed on the phone, *Start listening* tapped
 - [ ] Test call
-
-## Until the app is ready
-Install the free **ntfy** app from the Play Store and subscribe to the `call_topic` from `config.json`
-(set notifications to *max priority*). Calls arrive as urgent notifications — no voice yet.
 
 ## Notes
 - Messages pass through the public ntfy.sh server (topic names are the only secret). To avoid that,
@@ -35,10 +34,14 @@ Install the free **ntfy** app from the Play Store and subscribe to the `call_top
   can POST to the same topic.
 
 ## Install on the phone
-1. GitHub → repo → **Actions** → latest run → *Artifacts* → `ClaudeCaller-android` (or tag `v1.0.0` for a Release).
-2. Open the APK on the phone (allow "install unknown apps").
-3. Open Claude Caller → **Start listening for calls** → allow notifications, full-screen calls and
-   "ignore battery optimisation". Tap **Test the call screen and voice** to hear it.
+1. On the phone open **https://nawinsr24.github.io/claude-caller/** → *Download for Android* → install
+   (allow "install unknown apps").
+2. Ask Claude *"show my Claude Caller pairing QR"* (MCP tool `pairing_qr`), scan it with the phone camera,
+   tap **Open in Claude Caller**.
+3. Tap **Start listening for calls** → allow notifications, full-screen calls and "ignore battery
+   optimisation". Tap **Test the call screen and voice** to hear it.
 4. Ask Claude: *"call me and tell me …"*.
+
+New version: tag and push (`git tag v1.0.1 && git push --tags`); the download button always gets the latest.
 
 Each CI build signs with a fresh debug key, so updating may require uninstalling the old version first.
