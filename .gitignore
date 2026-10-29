@@ -3,4 +3,4 @@ config.json
 mcp/.venv/
 mcp/__pycache__/
 .DS_Store
-pairing-qr.svg
+pairing-qr.*

@@ -106,7 +106,7 @@ def get_call_replies(since_minutes: int = 60) -> list[dict]:
 
 
 PAIR_PAGE = "https://nawinsr24.github.io/claude-caller/pair.html"
-QR_PATH = CONFIG_PATH.parent / "pairing-qr.svg"
+QR_PATH = CONFIG_PATH.parent / "pairing-qr.png"
 
 
 @server.tool()
@@ -119,16 +119,16 @@ def pairing_qr(open_it: bool = True) -> dict:
     import subprocess
 
     import qrcode
-    import qrcode.image.svg
+    from qrcode.image.pure import PyPNGImage
 
     cfg = load_config()
     frag = urllib.parse.urlencode({"s": cfg["server"], "c": cfg["call_topic"], "r": cfg["reply_topic"]})
     url = f"{PAIR_PAGE}#{frag}"
-    img = qrcode.make(url, image_factory=qrcode.image.svg.SvgPathImage, box_size=12, border=3)
+    img = qrcode.make(url, image_factory=PyPNGImage, box_size=12, border=4)
     img.save(str(QR_PATH))
     QR_PATH.chmod(0o600)
     if open_it:
-        subprocess.run(["open", str(QR_PATH)], check=False)
+        subprocess.run(["open", "-a", "Preview", str(QR_PATH)], check=False)
     return {"qr_file": str(QR_PATH), "opened": open_it,
             "next": "Scan with the phone camera, tap 'Open in Claude Caller', then 'Start listening for calls'."}
 
