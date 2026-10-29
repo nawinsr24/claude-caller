@@ -39,40 +39,55 @@ def collect(hours: int):
     return list(calls.values())
 
 
+# Same scope and failure rule as the dashboard's default view (dashboard_page._prepare / _render_health).
+SCOPE_GROUPS = {"public": ("Public API", "Health check"), "internal": ("Portal internal", "Health check"), "all": None}
+
+
+def in_scope(c, scope: str) -> bool:
+    groups = SCOPE_GROUPS[scope]
+    return groups is None or c.group in groups
+
+
 def is_failed(c) -> bool:
-    return (c.status or 0) >= 400 or str(c.result).upper() == "FAILED"
+    return str(c.result).upper() == "FAILED"
 
 
 def spoken(op: str) -> str:
     """'POST /invoice/cancelPaymentLinkJava' -> 'invoice cancel Payment Link Java' (reads better aloud)."""
     import re
+    prefix = ""
+    if op.startswith("Undocumented: "):
+        prefix, op = "undocumented ", op[len("Undocumented: "):]
     path = op.split(" ", 1)[-1] if op.startswith(("GET ", "POST ", "PUT ", "DELETE ", "PATCH ")) else op
     words = re.sub(r"[/{}_.-]+", " ", path).strip()
-    return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", words) or op
+    return prefix + (re.sub(r"(?<=[a-z])(?=[A-Z])", " ", words) or op)
 
 
 def summarize(calls, hours: int) -> tuple[str, dict]:
     failed = [c for c in calls if is_failed(c)]
     s5 = sum(1 for c in failed if (c.status or 0) >= 500)
     s4 = sum(1 for c in failed if 400 <= (c.status or 0) < 500)
+    s401 = sum(1 for c in calls if c.status == 401)
     inv_ops = ("Create invoice", "Update invoice", "Payment")
     inv_failed = Counter(c.operation for c in failed if c.operation in inv_ops)
     top = Counter(c.operation for c in failed).most_common(1)
     rate = (100 * len(failed) / len(calls)) if calls else 0.0
-    m = {"hours": hours, "total": len(calls), "failed": len(failed), "rate": round(rate, 1), "5xx": s5, "4xx": s4,
+    m = {"hours": hours, "total": len(calls), "failed": len(failed), "rate": round(rate, 1), "5xx": s5, "4xx": s4, "401": s401,
          "invoice_failed": dict(inv_failed), "top_failing": top[0] if top else None}
 
     if not calls:
-        return f"Good morning. Invoice service report: no API calls found in the last {hours} hours.", m
-    parts = [f"Good morning. Invoice service report for the last {hours} hours.",
+        return f"Good morning. Invoice public API report: no API calls in the last {hours} hours.", m
+    parts = [f"Good morning. Invoice public API report for the last {hours} hours.",
              f"{len(calls)} API calls, {len(failed)} failed, that is {rate:.1f} percent."]
     if failed:
         parts.append(f"{s5} server errors and {s4} client errors." if s5 else f"All {s4} are client errors.")
+        if s401:
+            parts.append(f"{s401} of them are token errors.")
         inv = [f"{n} {op.lower()}" for op, n in inv_failed.most_common()]
         parts.append(("Failed invoice calls: " + ", ".join(inv) + ".") if inv else "No invoice create, update or payment failures.")
         op, n = top[0]
         parts.append(f"Top failing API is {spoken(op)}, with {n} failure{'s' if n != 1 else ''}.")
-    parts.append("Server errors need a look." if s5 else "No server errors. All good.")
+    parts.append("Server errors need a look." if s5 else "No server errors." if failed else "All good.")
     return " ".join(parts), m
 
 
@@ -87,9 +102,10 @@ def call(message: str) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--hours", type=int, default=24)
+    ap.add_argument("--scope", choices=list(SCOPE_GROUPS), default="public")
     ap.add_argument("--dry-run", action="store_true", help="print the message, don't call")
     a = ap.parse_args()
-    message, metrics = summarize(collect(a.hours), a.hours)
+    message, metrics = summarize([c for c in collect(a.hours) if in_scope(c, a.scope)], a.hours)
     print(json.dumps(metrics))
     print(message)
     if not a.dry_run:
