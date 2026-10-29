@@ -4,3 +4,4 @@ mcp/.venv/
 mcp/__pycache__/
 .DS_Store
 pairing-qr.*
+reports/logs/
