@@ -1,0 +1,43 @@
+name: Build Android app
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      # The private ntfy topics come from repository secrets, so they are never stored in the code.
+      - run: >
+          flutter build apk --release
+          --dart-define=CALL_TOPIC=${{ secrets.CALL_TOPIC }}
+          --dart-define=REPLY_TOPIC=${{ secrets.REPLY_TOPIC }}
+      - run: cp build/app/outputs/flutter-apk/app-release.apk ClaudeCaller-android.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: ClaudeCaller-android, path: app/ClaudeCaller-android.apk }
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: dist, merge-multiple: true }
+      - uses: softprops/action-gh-release@v2
+        with: { files: dist/*, generate_release_notes: true }

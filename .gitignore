@@ -1,0 +1,5 @@
+# secrets: private ntfy topics live here (and in GitHub secrets), never in git
+config.json
+mcp/.venv/
+mcp/__pycache__/
+.DS_Store
