@@ -120,39 +120,21 @@ def metrics(client, calls, start, end) -> dict:
 
 
 def tamil_message(m: dict, hours: int) -> str:
-    when = "நேத்து" if hours == 24 else f"கடைசி {hours} மணி நேர"
+    """Short and casual: totals, which API group failed, invoice status, verdict."""
+    when = "நேத்து" if hours == 24 else f"கடைசி {hours} மணி நேரத்துல"
     if not m["total"]:
-        return f"குட் மார்னிங் நவீன்! {when} இன்வாய்ஸ் API-ல ஒரு கால் கூட வரல."
-    parts = [f"குட் மார்னிங் நவீன்! {when} இன்வாய்ஸ் API ரிப்போர்ட்."]
-    parts.append(f"மொத்தம் {m['total']} கால்ஸ், " +
-                 (f"{m['failed']} ஃபெயில் ஆச்சு." if m["failed"] else "ஒண்ணு கூட ஃபெயில் ஆகல, சூப்பர்!"))
-
-    order = [name for _, name in FAMILIES] + [OTHER_FAMILY]
-    for name in order:
-        f = m["families"].get(name)
-        if not f:
-            continue
-        if not f["failed"]:
-            parts.append(f"{name}-ல {f['calls']} கால்ஸ், எல்லாம் சக்சஸ், சூப்பர்.")
-        else:
-            codes = ", ".join(f"{code} {num(n)}" for code, n in sorted(f["failed"].items(), key=lambda kv: -kv[1]))
-            parts.append(f"{name}-ல {f['calls']} கால்ஸ், அதுல {num(sum(f['failed'].values()))} ஃபெயில், {codes}.")
-
+        return f"குட் மார்னிங் நவீன்! {when} இன்வாய்ஸ் API-ல கால் எதுவும் வரல."
+    parts = [f"குட் மார்னிங் நவீன்! {when} {m['total']} கால்ஸ்."]
+    if m["failed"]:
+        by_fam = [(name.replace(" API", ""), sum(f["failed"].values())) for name, f in m["families"].items() if f["failed"]]
+        by_fam.sort(key=lambda kv: -kv[1])
+        parts.append(f"{m['failed']} ஃபெயில், " + ", ".join(f"{n} {num(k)}" for n, k in by_fam) + ".")
+    else:
+        parts.append("எல்லாம் சக்சஸ்.")
     created, done = m["created"], m["completed"]
     if created:
-        pending = created - done
-        line = f"{created} இன்வாய்ஸ் கிரியேட் ஆச்சு, {done} பேமெண்ட் கம்ப்ளீட் ஆச்சு"
-        line += f", {pending} இன்னும் பெண்டிங்ல இருக்கு." if pending else ", எல்லாமே கம்ப்ளீட், சூப்பர்."
-        parts.append(line)
-    else:
-        parts.append("புது இன்வாய்ஸ் எதுவும் கிரியேட் ஆகல.")
-
-    if m["5xx"]:
-        parts.append(f"{m['5xx']} சர்வர் எரர் இருக்கு, கொஞ்சம் பாருங்க.")
-    elif m["failed"]:
-        parts.append("சர்வர் எரர் எதுவும் இல்ல, client errors மட்டும் தான். டென்ஷன் வேண்டாம்.")
-    else:
-        parts.append("எல்லாம் சூப்பரா போகுது!")
+        parts.append(f"{created} இன்வாய்ஸ் கிரியேட், {done} கம்ப்ளீட், {created - done} பெண்டிங்.")
+    parts.append(f"{m['5xx']} சர்வர் எரர், கொஞ்சம் பாருங்க." if m["5xx"] else "சர்வர் எரர் இல்ல, சூப்பர்!")
     return " ".join(parts)
 
 
